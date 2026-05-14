@@ -22,3 +22,5 @@ extern void advance(void);
 extern char *getLexeme(void);
 
 #endif // __LEX__
+
+//i'm doing some test

@@ -9,7 +9,9 @@ typedef enum {
     INT, ID,
     ADDSUB, MULDIV,
     ASSIGN, 
-    LPAREN, RPAREN
+    LPAREN, RPAREN,
+    AND, OR, XOR, ADDSUB_ASSIGN,
+    INCDEC
 } TokenSet;
 
 // Test if a token matches the current token 
@@ -22,5 +24,3 @@ extern void advance(void);
 extern char *getLexeme(void);
 
 #endif // __LEX__
-
-//i'm doing some test

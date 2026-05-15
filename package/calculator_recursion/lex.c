@@ -26,10 +26,32 @@ TokenSet getToken(void)
         ungetc(c, stdin);
         lexeme[i] = '\0';
         return INT;
-    } else if (c == '+' || c == '-') {
-        lexeme[0] = c;
-        lexeme[1] = '\0';
-        return ADDSUB;
+    } else if (c == '+') {
+        char next = fgetc(stdin);
+        if (next == '+') { // 辨識 ++
+            strcpy(lexeme, "++");
+            return INCDEC;
+        } else if (next == '=') { // 辨識 +=
+            strcpy(lexeme, "+=");
+            return ADDSUB_ASSIGN;
+        } else {
+            ungetc(next, stdin);
+            strcpy(lexeme, "+");
+            return ADDSUB;
+        }
+    } else if (c == '-') {
+        char next = fgetc(stdin);
+        if (next == '-') { // 辨識 --
+            strcpy(lexeme, "--");
+            return INCDEC;
+        } else if (next == '=') { // 辨識 -=
+            strcpy(lexeme, "-=");
+            return ADDSUB_ASSIGN;
+        } else {
+            ungetc(next, stdin);
+            strcpy(lexeme, "-");
+            return ADDSUB;
+        }
     } else if (c == '*' || c == '/') {
         lexeme[0] = c;
         lexeme[1] = '\0';
@@ -46,11 +68,28 @@ TokenSet getToken(void)
     } else if (c == ')') {
         strcpy(lexeme, ")");
         return RPAREN;
-    } else if (isalpha(c)) {
+    }else if (isalpha(c) || c == '_') {
         lexeme[0] = c;
-        lexeme[1] = '\0';
+        i = 1;
+        c = fgetc(stdin);
+        while ((isalnum(c) || c == '_') && i < MAXLEN) {
+            lexeme[i] = c;
+            ++i;
+            c = fgetc(stdin);
+        }
+        ungetc(c, stdin);
+        lexeme[i] = '\0';
         return ID;
-    } else if (c == EOF) {
+    } else if (c == '&') {
+        strcpy(lexeme, "&");
+        return AND;
+    } else if (c == '|') {
+        strcpy(lexeme, "|");
+        return OR;
+    } else if (c == '^') {
+        strcpy(lexeme, "^");
+        return XOR;
+    }else if (c == EOF) {
         return ENDFILE;
     } else {
         return UNKNOWN;

@@ -23,7 +23,7 @@ typedef enum {
 
 // Structure of the symbol table
 typedef struct {
-    int val;
+    int addr;
     char name[MAXLEN];
 } Symbol;
 

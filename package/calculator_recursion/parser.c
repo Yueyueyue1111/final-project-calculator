@@ -45,7 +45,7 @@ void initTable(void) {
 
 int find_var_addr(char *str){
     for(int i=0;i<sbcount;i++){
-        if(strcmp(str, table[i].name)){
+        if(strcmp(str, table[i].name)==0){
             return table[i].addr;
         }
     }
@@ -184,18 +184,19 @@ void freeTree(BTNode *root) {
 
 // // expr_tail := ADDSUB term expr_tail | NiL
 BTNode *expr(void){
-    
+    return assign_expr();
 }
 
 static BTNode *assign_expr(void){
     BTNode *node=or_expr();
-    if(match(ASSIGN) || match(ADDSUB)){
+    if(match(ASSIGN) || match(ADDSUB_ASSIGN)){
         if(node->data != ID){
             error(NOTLVAL);
         }
 
-        TokenSet on_type=(match(ADDSUB))? ASSIGN:ADDSUB_ASSIGN;
-        BTNode *temp=makeNode(on_type, getLexeme());
+        create_var(node->lexeme);
+        TokenSet op_type=(match(ASSIGN))? ASSIGN:ADDSUB_ASSIGN;
+        BTNode *temp=makeNode(op_type, getLexeme());
         advance();
 
         temp->left=node;
@@ -231,7 +232,7 @@ static BTNode *xor_expr(void){
 
 static BTNode *and_expr(void){
     BTNode *node=addsub_expr();
-    while(match(XOR)){
+    while(match(AND)){
         BTNode *temp=makeNode(AND,getLexeme());
         advance();
         temp->left=node;
@@ -255,8 +256,8 @@ static BTNode *addsub_expr(void){
 
 static BTNode *muldiv_expr(void){
     BTNode *node=unary_expr();
-    while(match(ADDSUB)){
-        BTNode *temp=makeNode(ADDSUB,getLexeme());
+    while(match(MULDIV)){
+        BTNode *temp=makeNode(MULDIV,getLexeme());
         advance();
         temp->left=node;
         temp->right=unary_expr();
@@ -290,7 +291,46 @@ static BTNode *unary_expr(void) {
 //		   	 LPAREN expr RPAREN |
 //		   	 ADDSUB LPAREN expr RPAREN
 static BTNode *factor(void){
+    BTNode *rept=NULL;
 
+    if(match(INT)){
+        rept=makeNode(INT,getLexeme());
+        advance();
+    }else if(match(ID)){
+        char id_lex[MAXLEN];
+        strcpy(id_lex, getLexeme());
+        rept = makeNode(ID, id_lex);
+        advance();
+        
+        if (!match(ASSIGN) && !match(ADDSUB_ASSIGN)) {
+            if (find_var_addr(id_lex) == -1) {
+                error(NOTFOUND); // 未宣告先使用，報錯結束
+            }
+        }
+    }else if(match(INCDEC)){
+        rept=makeNode(INCDEC,getLexeme());
+        advance();
+        if(match(ID)){
+            if(find_var_addr(getLexeme())==-1){
+                error(NOTFOUND);
+            }
+            rept->left=makeNode(ID,getLexeme());
+            advance();
+        }else{
+            error(NOTLVAL);
+        }
+    }else if(match(LPAREN)){
+        advance();
+        rept=expr();
+        if(match(RPAREN)){
+            advance();
+        }else{
+            error(MISPAREN);
+        }
+    }else{
+        error(SYNTAXERR);
+    }
+    return rept;
 }
 
 // statement := ENDFILE | END | expr END

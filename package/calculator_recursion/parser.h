@@ -54,11 +54,11 @@ extern BTNode *makeNode(TokenSet tok, const char *lexe);
 // Free the syntax tree
 extern void freeTree(BTNode *root);
 
-extern BTNode *factor(void);
-extern BTNode *term(void);
-extern BTNode *term_tail(BTNode *left);
-extern BTNode *expr(void);
-extern BTNode *expr_tail(BTNode *left);
+// extern BTNode *factor(void);
+// extern BTNode *term(void);
+// extern BTNode *term_tail(BTNode *left);
+// extern BTNode *expr(void);
+// extern BTNode *expr_tail(BTNode *left);
 extern void statement(void);
 
 // Print error message and exit the program

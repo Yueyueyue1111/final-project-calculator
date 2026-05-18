@@ -1,0 +1,5 @@
+cd package/calculator_recursion
+
+gcc main.c lex.c parser.c codeGen.c -o test
+
+./test

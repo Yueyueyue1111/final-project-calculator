@@ -3,6 +3,8 @@
 
 #include "parser.h"
 
+int evaluateTree_And_printPrefix(BTNode *root, int reg);
+
 // Evaluate the syntax tree
 extern int evaluateTree(BTNode *root);
 

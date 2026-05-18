@@ -340,17 +340,14 @@ void statement(void) {
     if (match(ENDFILE)) {
         exit(0);
     } else if (match(END)) {
-        printf(">> ");
+        //printf(">> ");
         advance();
     } else {
         retp = expr();
         if (match(END)) {
-            printf("%d\n", evaluateTree(retp));
-            printf("Prefix traversal: ");
-            printPrefix(retp);
-            printf("\n");
+            evaluateTree_And_printPrefix(retp,0);
+            printf("EXIT 0\n");
             freeTree(retp);
-            printf(">> ");
             advance();
         } else {
             error(SYNTAXERR);
@@ -388,5 +385,6 @@ void err(ErrorType errorNum) {
                 break;
         }
     }
+    printf("EXIT 1\n");
     exit(0);
 }

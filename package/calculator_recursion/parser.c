@@ -254,14 +254,59 @@ static BTNode *addsub_expr(void){
     return node;
 }
 
-static BTNode *muldiv_expr(void){
-    BTNode *node=unary_expr();
-    while(match(MULDIV)){
-        BTNode *temp=makeNode(MULDIV,getLexeme());
+int is_constant_tree(BTNode *root, int *result) {
+    if (root == NULL) return 0;
+    if (root->data == INT) {
+        *result = atoi(root->lexeme);
+        return 1;
+    }
+    if (root->data == ID || root->data == INCDEC) {
+        return 0; // 只要含有變數或自增減，就不是純常數樹
+    }
+
+    int left_val = 0, right_val = 0;
+    // 遞迴檢查左右子樹
+    if (is_constant_tree(root->left, &left_val) && is_constant_tree(root->right, &right_val)) {
+        if (root->data == ADDSUB) {
+            if (strcmp(root->lexeme, "+") == 0) *result = left_val + right_val;
+            else *result = left_val - right_val;
+            return 1;
+        } else if (root->data == MULDIV) {
+            if (strcmp(root->lexeme, "*") == 0) {
+                *result = left_val * right_val;
+            } else {
+                if (right_val == 0) return 0; // 巢狀的除以零讓它在後續處理
+                *result = left_val / right_val;
+            }
+            return 1;
+        } else if (root->data == AND) { *result = left_val & right_val; return 1; }
+        else if (root->data == OR)  { *result = left_val | right_val; return 1; }
+        else if (root->data == XOR) { *result = left_val ^ right_val; return 1; }
+    }
+    return 0;
+}
+
+static BTNode *muldiv_expr(void) {
+    BTNode *node = unary_expr();
+    while (match(MULDIV)) {
+        TokenSet op_type = (strcmp(getLexeme(), "*") == 0) ? MULDIV : MULDIV; // 判斷符號
+        char op_lex[MAXLEN];
+        strcpy(op_lex, getLexeme());
+
+        BTNode *temp = makeNode(MULDIV, op_lex);
         advance();
-        temp->left=node;
-        temp->right=unary_expr();
-        node=temp;
+        temp->left = node;
+        temp->right = unary_expr(); // 解析出右子樹
+        
+        // 👈 在這裡進行 parser 階段的防守！
+        if (strcmp(op_lex, "/") == 0) {
+            int right_value = 0;
+            // 如果右子樹整棵都是純常數，且算出來是 0，當場抓包報錯！
+            if (is_constant_tree(temp->right, &right_value) && right_value == 0) {
+                error(DIVZERO); // 噴出 EXIT 1 並結束程式
+            }
+        }
+        node = temp;
     }
     return node;
 }
